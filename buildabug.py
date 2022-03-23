@@ -9,7 +9,8 @@ class YouLost:
     def draw(self):
         pyxel.cls(0)
         pyxel.text(50, 50, "YOU LOST!\nPress R to restart\nPress Q to quit", 7)
-
+    def update(self, app):
+        pass
 
 class Menu:
     def __init__(self):
@@ -118,7 +119,7 @@ class Collection:
         pyxel.pset(124+4*self.game.luck, 45, 7)
 
         pyxel.rect(110, 105, 40, 45, 8)
-        pyxel.text(112, 110, "Scores", 7)
+        pyxel.text(112, 110, f"Score:{max([x.colorCheck for x in self.game.bugCollection])-1}", 7)
         pyxel.rect(118, 125, 26, 17, 0)
         pyxel.rectb(118, 125, 26, 17, 1)
         for i, bug in enumerate(self.game.bugCollection):
@@ -436,6 +437,26 @@ class Credits:
             time.sleep(0.5)
             app.state = 0
 
+class End:
+    def __init__(self):
+        self.read = 0
+
+    def draw(self):
+        pyxel.rect(16, 16, 118, 118, 9)
+        pyxel.text(
+            20, 32, "CONGRATULATIONS! \n You corrupted reality", 0)
+        pyxel.rect(58, 110, 70, 20, 0)
+        pyxel.text(62, 115, "OK (press R)", 9)
+
+    def update(self, app):
+        if pyxel.btnr(pyxel.KEY_ENTER):
+            self.read = 1
+        if pyxel.btnp(pyxel.KEY_ENTER) and self.read:
+            self.read = 0
+            time.sleep(0.5)
+            app.state = 0
+
+
 
 class App:
     def __init__(self):
@@ -448,6 +469,7 @@ class App:
         self.collection = Collection(self.game)
         self.store = Store(self.game)
         self.youlost = YouLost()
+        self.youwon = End()
         # [menu,credits,incipit,collection,store,youlost,youwon]
         self.state = 0
         pyxel.run(self.update, self.draw)
@@ -463,6 +485,8 @@ class App:
     def update(self):
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
+        if max([x.colorCheck for x in self.game.bugCollection])> 15:
+            self.state=6
         if self.state == 0:
             self.menu.update(self)
         if self.state == 1:
@@ -475,6 +499,9 @@ class App:
             self.store.update(self, self.collection)
         if self.state == 5:
             self.youlost.update(self)
+
+        if self.state ==6:
+            self.youwon.update(self)
         if pyxel.btnp(pyxel.KEY_R):
             self.game = Game()
             self.store = Store(self.game)
@@ -492,9 +519,11 @@ class App:
         if self.state == 3:
             self.collection.draw()
         if self.state == 4:
-            self.store.draw()
+            self.store.draw()  
         if self.state == 5:
             self.youlost.draw()
+        if self.state ==6:
+            self.youwon.draw()
 
 
 App()
